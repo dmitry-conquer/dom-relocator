@@ -10,9 +10,21 @@
     "typescript"
   ],
   "author": "Dmytro Frolov",
-  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dmitry-conquer/dom-relocator.git"
+  },
+  "homepage": "https://github.com/dmitry-conquer/dom-relocator#readme",
+  "bugs": {
+    "url": "https://github.com/dmitry-conquer/dom-relocator/issues"
+  },
   "type": "module",
   "sideEffects": false,
+  "packageManager": "pnpm@11.10.0",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "files": [
     "dist"
   ],
@@ -32,10 +44,9 @@
     "build:docs": "tsup src/index.ts --format esm --out-dir docs --minify",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
-  },
-  "engines": {
-    "node": ">=20.19"
+    "test:watch": "vitest",
+    "prepack": "pnpm run build",
+    "prepublishOnly": "pnpm run typecheck && pnpm test"
   },
   "overrides": {
     "esbuild": "^0.28.1"

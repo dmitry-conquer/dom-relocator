@@ -4,8 +4,6 @@ A small, dependency-free TypeScript library that moves existing DOM elements bet
 
 Created by **Dmytro Frolov**.
 
-> The package is prepared for publication but has not been published to npm yet.
-
 ## Why DOMRelocator?
 
 Responsive interfaces sometimes need the same interactive element in a different part of the document—not merely styled differently. Duplicating markup can introduce duplicate IDs, stale state, and accessibility problems. DOMRelocator moves the original node, preserving its state and event listeners.
@@ -22,14 +20,13 @@ Responsive interfaces sometimes need the same interactive element in a different
 
 ## Installation
 
-Until the package is published, install dependencies and build it locally:
+Using pnpm:
 
 ```bash
-npm install
-npm run build
+pnpm add dom-relocator
 ```
 
-After publication:
+Using npm:
 
 ```bash
 npm install dom-relocator
@@ -140,11 +137,11 @@ For controlled applications, keep observation disabled and call `refresh()` afte
 ## Development
 
 ```bash
-npm install
-npm run dev        # Open the interactive demo
-npm run typecheck  # Check TypeScript
-npm test           # Run the test suite
-npm run build      # Build ESM, CommonJS, and declarations
+pnpm install
+pnpm dev        # Open the interactive demo
+pnpm typecheck  # Check TypeScript
+pnpm test       # Run the test suite
+pnpm build      # Build ESM, CommonJS, and declarations
 ```
 
 The interactive demo includes a draggable viewport resizer and examples for different media queries and insertion positions.
@@ -152,7 +149,3 @@ The interactive demo includes a draggable viewport resizer and examples for diff
 ## Browser support
 
 DOMRelocator targets modern browsers with `matchMedia`, `Map`, and standard DOM event APIs.
-
-## License
-
-[MIT](./LICENSE) © 2026 Dmytro Frolov
