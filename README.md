@@ -32,6 +32,26 @@ Using npm:
 npm install dom-relocator
 ```
 
+### CDN
+
+Use DOMRelocator directly in the browser without installing a package:
+
+```html
+<script type="module">
+  import DOMRelocator from "https://cdn.jsdelivr.net/npm/dom-relocator@0.1.0/dist/index.js";
+
+  const relocator = new DOMRelocator();
+</script>
+```
+
+The same version is also available from unpkg:
+
+```text
+https://unpkg.com/dom-relocator@0.1.0/dist/index.js
+```
+
+Pinning the version in the URL prevents unexpected changes when a new release is published.
+
 ## Quick start
 
 ```html
@@ -46,9 +66,6 @@ npm install dom-relocator
 import DOMRelocator from "dom-relocator";
 
 const relocator = new DOMRelocator();
-
-// Restore every element and remove all listeners.
-relocator.destroy();
 ```
 
 Instances discover elements immediately when constructed.
