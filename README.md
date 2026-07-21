@@ -1,0 +1,158 @@
+# DOMRelocator
+
+A small, dependency-free TypeScript library that moves existing DOM elements between containers when media queries match and restores them to their exact original position when they no longer match.
+
+Created by **Dmytro Frolov**.
+
+> The package is prepared for publication but has not been published to npm yet.
+
+## Why DOMRelocator?
+
+Responsive interfaces sometimes need the same interactive element in a different part of the document—not merely styled differently. Duplicating markup can introduce duplicate IDs, stale state, and accessibility problems. DOMRelocator moves the original node, preserving its state and event listeners.
+
+## Features
+
+- Uses `matchMedia`; no resize polling
+- Restores the exact original DOM position
+- Supports `first`, `last`, and zero-based numeric positions
+- Optional dynamic DOM observation
+- Manual `refresh()` and complete `destroy()` lifecycle
+- Scoped roots and typed callbacks
+- Zero runtime dependencies
+
+## Installation
+
+Until the package is published, install dependencies and build it locally:
+
+```bash
+npm install
+npm run build
+```
+
+After publication:
+
+```bash
+npm install dom-relocator
+```
+
+## Quick start
+
+```html
+<div id="mobile-actions"></div>
+
+<div data-relocate-to="#mobile-actions" data-relocate-query="(max-width: 48rem)" data-relocate-position="last">
+  <button type="button">Save changes</button>
+</div>
+```
+
+```ts
+import DOMRelocator from "dom-relocator";
+
+const relocator = new DOMRelocator();
+
+// Restore every element and remove all listeners.
+relocator.destroy();
+```
+
+Instances discover elements immediately when constructed.
+
+## Data attributes
+
+| Attribute                | Required | Default              | Description                                                 |
+| ------------------------ | -------- | -------------------- | ----------------------------------------------------------- |
+| `data-relocate-to`       | Yes      | —                    | CSS selector for the destination inside the configured root |
+| `data-relocate-query`    | No       | `(max-width: 767px)` | Any valid media query                                       |
+| `data-relocate-position` | No       | `last`               | `first`, `last`, or a zero-based integer                    |
+
+### Position examples
+
+```html
+<!-- Insert before all existing destination children. -->
+<div data-relocate-to="#target" data-relocate-position="first"></div>
+
+<!-- Append after all existing destination children. -->
+<div data-relocate-to="#target" data-relocate-position="last"></div>
+
+<!-- Insert at zero-based index 1. -->
+<div data-relocate-to="#target" data-relocate-position="1"></div>
+```
+
+Numeric positions greater than the number of destination children append the element.
+
+## Options
+
+```ts
+const relocator = new DOMRelocator({
+  root: document,
+  observe: false,
+  onChange: change => {
+    console.log(change.action, change.element, change.target);
+  },
+  onError: error => {
+    console.error(error.message, error.element);
+  },
+});
+```
+
+| Option     | Default        | Description                                          |
+| ---------- | -------------- | ---------------------------------------------------- |
+| `root`     | `document`     | Scope used to find managed elements and destinations |
+| `observe`  | `false`        | Refresh automatically after relevant DOM mutations   |
+| `onChange` | —              | Called after an element moves or restores            |
+| `onError`  | `console.warn` | Receives configuration and runtime errors            |
+
+## API
+
+### `size`
+
+The number of elements currently managed by the instance.
+
+```ts
+console.log(relocator.size);
+```
+
+### `refresh()`
+
+Discovers added elements, removes stale records, and applies changed data attributes. Call it after dynamic DOM updates when `observe` is disabled.
+
+```ts
+relocator.refresh();
+```
+
+### `destroy()`
+
+Restores all managed elements and removes media-query and mutation listeners. A destroyed instance cannot be restarted; create a new instance if needed.
+
+```ts
+relocator.destroy();
+```
+
+## Dynamic DOM
+
+Observation is opt-in so the default runtime cost stays minimal:
+
+```ts
+const relocator = new DOMRelocator({ observe: true });
+```
+
+For controlled applications, keep observation disabled and call `refresh()` after rendering new markup.
+
+## Development
+
+```bash
+npm install
+npm run dev        # Open the interactive demo
+npm run typecheck  # Check TypeScript
+npm test           # Run the test suite
+npm run build      # Build ESM, CommonJS, and declarations
+```
+
+The interactive demo includes a draggable viewport resizer and examples for different media queries and insertion positions.
+
+## Browser support
+
+DOMRelocator targets modern browsers with `matchMedia`, `Map`, and standard DOM event APIs.
+
+## License
+
+[MIT](./LICENSE) © 2026 Dmytro Frolov

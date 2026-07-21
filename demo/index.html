@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DOMRelocator Demo</title>
+    <style>
+      :root {
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        color: #172033;
+        background: #f6f7f9;
+        font-synthesis: none;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-width: 320px;
+        margin: 0;
+      }
+
+      .resizer-page {
+        display: none;
+        width: min(1320px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 32px 0;
+      }
+
+      body.is-host .resizer-page {
+        display: block;
+      }
+
+      body.is-host .demo-page {
+        display: none;
+      }
+
+      .resizer-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 18px;
+      }
+
+      .resizer-header h1 {
+        margin-bottom: 5px;
+      }
+
+      .presets {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .preset {
+        min-height: 34px;
+        padding: 0 10px;
+        border: 1px solid #d0d5dd;
+        border-radius: 7px;
+        color: #475467;
+        background: #fff;
+        cursor: pointer;
+        font:
+          600 11px/1 ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          monospace;
+      }
+
+      .preset:hover,
+      .preset.is-active {
+        border-color: #2563eb;
+        color: #175cd3;
+        background: #eff4ff;
+      }
+
+      .resizer-track {
+        position: relative;
+        min-height: 960px;
+        padding: 14px 24px 14px 14px;
+        overflow-x: auto;
+        border: 1px solid #d8dee8;
+        border-radius: 12px;
+        background: linear-gradient(#e4e7ec 1px, transparent 1px), linear-gradient(90deg, #e4e7ec 1px, transparent 1px), #eef1f5;
+        background-size: 24px 24px;
+      }
+
+      .preview {
+        position: relative;
+        width: 1200px;
+        min-width: 0;
+        border: 1px solid #b8c1ce;
+        border-radius: 9px;
+        background: #fff;
+        box-shadow: 0 12px 30px rgba(16, 24, 40, 0.12);
+      }
+
+      .preview-bar {
+        display: flex;
+        height: 38px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 12px;
+        border-bottom: 1px solid #d8dee8;
+        border-radius: 9px 9px 0 0;
+        color: #667085;
+        background: #f9fafb;
+        font-size: 11px;
+      }
+
+      .preview-bar output {
+        color: #175cd3;
+        font:
+          700 12px/1 ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          monospace;
+      }
+
+      .preview iframe {
+        display: block;
+        width: 100%;
+        height: 900px;
+        border: 0;
+        border-radius: 0 0 9px 9px;
+        background: #f6f7f9;
+      }
+
+      .resize-handle {
+        position: absolute;
+        top: 50%;
+        right: -11px;
+        display: grid;
+        width: 22px;
+        height: 64px;
+        padding: 0;
+        place-items: center;
+        transform: translateY(-50%);
+        border: 1px solid #9db8f4;
+        border-radius: 7px;
+        color: #2563eb;
+        background: #fff;
+        box-shadow: 0 3px 10px rgba(16, 24, 40, 0.14);
+        cursor: ew-resize;
+        touch-action: none;
+      }
+
+      .resize-handle::before {
+        color: currentColor;
+        content: "⋮";
+        font-size: 18px;
+        line-height: 1;
+      }
+
+      .resize-handle:focus-visible {
+        outline: 3px solid rgba(37, 99, 235, 0.22);
+        outline-offset: 2px;
+      }
+
+      .resizer-hint {
+        margin: 10px 0 0;
+        color: #667085;
+        font-size: 12px;
+      }
+
+      .page {
+        width: min(1040px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 40px 0;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+        letter-spacing: -0.03em;
+      }
+
+      .description {
+        margin: 0;
+        color: #667085;
+        line-height: 1.5;
+      }
+
+      .project-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px 14px;
+        margin: 9px 0 0;
+        color: #667085;
+        font-size: 12px;
+      }
+
+      .project-meta strong {
+        color: #344054;
+      }
+
+      .repository-placeholder {
+        color: #175cd3;
+      }
+
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin: 22px 0 14px;
+        padding: 11px 13px;
+        border: 1px solid #d8dee8;
+        border-radius: 9px;
+        background: #fff;
+      }
+
+      .viewport {
+        color: #172033;
+        font:
+          700 13px/1 ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          monospace;
+      }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 8px;
+        border-radius: 99px;
+        color: #667085;
+        background: #f2f4f7;
+        font-size: 11px;
+      }
+
+      .legend-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #98a2b3;
+      }
+
+      .legend-item.is-active {
+        color: #175cd3;
+        background: #eff4ff;
+      }
+
+      .legend-item.is-active .legend-dot {
+        background: #2563eb;
+      }
+
+      .stage {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 96px minmax(0, 1fr);
+        align-items: stretch;
+        gap: 14px;
+      }
+
+      .container {
+        min-height: 390px;
+        padding: 18px;
+        border: 2px dashed #c9d1dd;
+        border-radius: 12px;
+        background: #fff;
+      }
+
+      .container.destination {
+        border-color: #9bb7f5;
+        background: #f8faff;
+      }
+
+      .container-heading {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+
+      .number {
+        display: inline-grid;
+        flex: 0 0 auto;
+        width: 29px;
+        height: 29px;
+        place-items: center;
+        border-radius: 50%;
+        color: #fff;
+        background: #344054;
+        font-size: 12px;
+        font-weight: 750;
+      }
+
+      .destination .number {
+        background: #2563eb;
+      }
+
+      .container-heading strong {
+        display: block;
+        font-size: 14px;
+      }
+
+      .container-heading small {
+        display: block;
+        margin-top: 2px;
+        color: #667085;
+        font-size: 11px;
+      }
+
+      .slot {
+        display: grid;
+        align-content: start;
+        min-height: 304px;
+        gap: 10px;
+        padding: 10px;
+        border: 1px solid #e4e7ec;
+        border-radius: 9px;
+      }
+
+      .slot:empty {
+        place-items: center;
+      }
+
+      .slot:empty::after {
+        color: #98a2b3;
+        font-size: 12px;
+        text-align: center;
+      }
+
+      .source-slot:empty::after {
+        content: "All elements moved";
+      }
+
+      .target-slot:empty::after {
+        content: "Resize below 1100px";
+      }
+
+      .movable {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+        gap: 10px;
+        min-height: 88px;
+        padding: 11px;
+        border: 1px solid var(--item-border);
+        border-radius: 8px;
+        background: var(--item-bg);
+        box-shadow: 0 3px 10px rgba(52, 64, 84, 0.05);
+      }
+
+      .movable-a {
+        --item-border: #b7a4eb;
+        --item-bg: #f9f5ff;
+        --item-color: #6941c6;
+      }
+
+      .movable-b {
+        --item-border: #88c9a5;
+        --item-bg: #f0fdf4;
+        --item-color: #168153;
+      }
+
+      .movable-c {
+        --item-border: #f0b89a;
+        --item-bg: #fff7ed;
+        --item-color: #c2410c;
+      }
+
+      .movable .number {
+        width: 28px;
+        height: 28px;
+        background: var(--item-color);
+        font-size: 10px;
+      }
+
+      .movable strong {
+        display: block;
+        overflow: hidden;
+        font-size: 13px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .movable-copy {
+        min-width: 0;
+      }
+
+      .movable small {
+        display: block;
+        margin-top: 3px;
+        color: #667085;
+        font-size: 11px;
+      }
+
+      .breakpoint {
+        display: inline-flex;
+        margin-top: 8px;
+        padding: 5px 7px;
+        border: 1px solid var(--item-border);
+        border-radius: 6px;
+        color: var(--item-color);
+        background: #fff;
+        font:
+          700 10px/1 ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          monospace;
+      }
+
+      .arrow {
+        display: grid;
+        place-items: center;
+        color: #667085;
+        text-align: center;
+      }
+
+      .arrow strong {
+        display: block;
+        color: #2563eb;
+        font-size: 32px;
+        line-height: 1;
+      }
+
+      .arrow span {
+        display: block;
+        margin-top: 9px;
+        font-size: 11px;
+        line-height: 1.45;
+      }
+
+      .status-list {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .status {
+        padding: 9px 10px;
+        border: 1px solid #d8dee8;
+        border-radius: 7px;
+        color: #667085;
+        background: #fff;
+        font-size: 11px;
+        text-align: center;
+      }
+
+      .status strong {
+        color: #344054;
+      }
+
+      .status.is-moved {
+        border-color: #b2ccff;
+        color: #175cd3;
+        background: #eff4ff;
+      }
+
+      .status.is-moved strong {
+        color: #175cd3;
+      }
+
+      .code {
+        margin: 18px 0 0;
+        padding: 13px 15px;
+        overflow-x: auto;
+        border: 1px solid #d8dee8;
+        border-radius: 8px;
+        color: #344054;
+        background: #fff;
+        font:
+          11px/1.6 ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="resizer-page" aria-label="Resizable demo preview">
+      <header class="resizer-header">
+        <div>
+          <h1>DOMRelocator demo</h1>
+          <p class="description">Drag the blue handle or choose a viewport preset.</p>
+          <p class="project-meta">
+            <span>Created by <strong>Dmytro Frolov</strong></span>
+            <span class="repository-placeholder" aria-disabled="true">GitHub repository · coming soon</span>
+          </p>
+        </div>
+        <div class="presets" aria-label="Viewport presets">
+          <button class="preset" type="button" data-width="1200">Desktop · 1200</button>
+          <button class="preset" type="button" data-width="1000">Move 2A · 1000</button>
+          <button class="preset" type="button" data-width="800">Move 2B · 800</button>
+          <button class="preset" type="button" data-width="650">Move 2C · 650</button>
+        </div>
+      </header>
+
+      <div class="resizer-track" id="resizer-track">
+        <div class="preview" id="preview">
+          <div class="preview-bar"><span>Live preview</span><output id="preview-width">1200px</output></div>
+          <iframe id="preview-frame" title="DOMRelocator live demo" src="./index.html?embedded=1"></iframe>
+          <button
+            class="resize-handle"
+            id="resize-handle"
+            type="button"
+            role="slider"
+            aria-label="Resize preview"
+            aria-valuemin="620"
+            aria-valuemax="1240"
+            aria-valuenow="1200"
+          ></button>
+        </div>
+      </div>
+      <p class="resizer-hint">Tip: use the left and right arrow keys while the resize handle is focused.</p>
+    </section>
+
+    <main class="page demo-page">
+      <h1>DOMRelocator demo</h1>
+      <p class="description">Resize the browser. Elements move from container <strong>1</strong> to container <strong>3</strong> using different insertion positions.</p>
+
+      <div class="toolbar">
+        <output class="viewport" id="viewport-width">Viewport: 0px</output>
+        <div class="legend" aria-label="Breakpoints">
+          <span class="legend-item" data-legend="item-a"><i class="legend-dot"></i>2A · first · 1100px</span>
+          <span class="legend-item" data-legend="item-b"><i class="legend-dot"></i>2B · last · 900px</span>
+          <span class="legend-item" data-legend="item-c"><i class="legend-dot"></i>2C · index 1 · 700px</span>
+        </div>
+      </div>
+
+      <section class="stage" aria-label="Relocation diagram">
+        <article class="container">
+          <header class="container-heading">
+            <span class="number">1</span>
+            <div><strong>Source</strong><small>#desktop-items</small></div>
+          </header>
+          <div class="slot source-slot" id="desktop-items">
+            <article class="movable movable-a" id="item-a" data-relocate-to="#responsive-items" data-relocate-query="(max-width: 1100px)" data-relocate-position="first">
+              <span class="number">2A</span>
+              <div class="movable-copy"><strong>Navigation</strong><small>Insert at the beginning</small><span class="breakpoint">first · ≤1100</span></div>
+            </article>
+
+            <article class="movable movable-b" id="item-b" data-relocate-to="#responsive-items" data-relocate-query="(max-width: 900px)" data-relocate-position="last">
+              <span class="number">2B</span>
+              <div class="movable-copy"><strong>Search</strong><small>Append at the end</small><span class="breakpoint">last · ≤900</span></div>
+            </article>
+
+            <article class="movable movable-c" id="item-c" data-relocate-to="#responsive-items" data-relocate-query="(max-width: 700px)" data-relocate-position="1">
+              <span class="number">2C</span>
+              <div class="movable-copy"><strong>Actions</strong><small>Insert at index 1</small><span class="breakpoint">index 1 · ≤700</span></div>
+            </article>
+          </div>
+        </article>
+
+        <div class="arrow" aria-hidden="true">
+          <div>
+            <strong>→</strong><span>moves<br />at each<br />breakpoint</span>
+          </div>
+        </div>
+
+        <article class="container destination">
+          <header class="container-heading">
+            <span class="number">3</span>
+            <div><strong>Destination</strong><small>#responsive-items</small></div>
+          </header>
+          <div class="slot target-slot" id="responsive-items"></div>
+        </article>
+      </section>
+
+      <div class="status-list" aria-live="polite">
+        <div class="status" id="status-item-a"><strong>2A</strong> is inside 1</div>
+        <div class="status" id="status-item-b"><strong>2B</strong> is inside 1</div>
+        <div class="status" id="status-item-c"><strong>2C</strong> is inside 1</div>
+      </div>
+
+      <pre class="code">
+&lt;!-- 2A --&gt;
+data-relocate-to="#responsive-items"
+data-relocate-query="(max-width: 1100px)"
+data-relocate-position="first"
+
+&lt;!-- 2B --&gt;
+data-relocate-to="#responsive-items"
+data-relocate-query="(max-width: 900px)"
+data-relocate-position="last"
+
+&lt;!-- 2C --&gt;
+data-relocate-to="#responsive-items"
+data-relocate-query="(max-width: 700px)"
+data-relocate-position="1"</pre
+      >
+    </main>
+
+    <script type="module">
+      import DOMRelocator from "../src/index.ts";
+
+      const isEmbedded = new URLSearchParams(window.location.search).has("embedded");
+
+      if (isEmbedded) {
+        document.body.classList.add("is-embedded");
+
+        const items = [
+          { id: "item-a", query: "(max-width: 1100px)", position: "first" },
+          { id: "item-b", query: "(max-width: 900px)", position: "last" },
+          { id: "item-c", query: "(max-width: 700px)", position: "index 1" },
+        ];
+        const width = document.querySelector("#viewport-width");
+
+        const updateItem = (id, moved) => {
+          const label = id.slice(-1).toUpperCase();
+          const position = items.find(item => item.id === id)?.position;
+          const status = document.querySelector(`#status-${id}`);
+          const legend = document.querySelector(`[data-legend="${id}"]`);
+          status.innerHTML = moved ? `<strong>2${label}</strong> → ${position} in 3` : `<strong>2${label}</strong> is inside 1`;
+          status.classList.toggle("is-moved", moved);
+          legend.classList.toggle("is-active", moved);
+        };
+
+        const updateViewport = () => {
+          width.textContent = `Viewport: ${window.innerWidth}px`;
+        };
+
+        window.addEventListener("resize", updateViewport, { passive: true });
+        updateViewport();
+
+        new DOMRelocator({
+          onChange: change => updateItem(change.element.id, change.action === "move"),
+        });
+
+        for (const item of items) updateItem(item.id, window.matchMedia(item.query).matches);
+      } else {
+        document.body.classList.add("is-host");
+
+        const track = document.querySelector("#resizer-track");
+        const preview = document.querySelector("#preview");
+        const output = document.querySelector("#preview-width");
+        const handle = document.querySelector("#resize-handle");
+        const presets = [...document.querySelectorAll("[data-width]")];
+        let currentWidth = 1200;
+        let dragStartX = 0;
+        let dragStartWidth = 0;
+
+        const availableWidth = () => Math.min(1240, track.clientWidth - 38);
+
+        const setWidth = requestedWidth => {
+          const maximum = availableWidth();
+          const minimum = Math.min(620, maximum);
+          currentWidth = Math.round(Math.max(minimum, Math.min(requestedWidth, maximum)));
+          preview.style.width = `${currentWidth}px`;
+          output.textContent = `${currentWidth}px`;
+          handle.setAttribute("aria-valuemax", String(maximum));
+          handle.setAttribute("aria-valuenow", String(currentWidth));
+          presets.forEach(button => button.classList.toggle("is-active", Number(button.dataset.width) === currentWidth));
+        };
+
+        handle.addEventListener("pointerdown", event => {
+          dragStartX = event.clientX;
+          dragStartWidth = currentWidth;
+          handle.setPointerCapture(event.pointerId);
+        });
+
+        handle.addEventListener("pointermove", event => {
+          if (!handle.hasPointerCapture(event.pointerId)) return;
+          setWidth(dragStartWidth + event.clientX - dragStartX);
+        });
+
+        handle.addEventListener("keydown", event => {
+          if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+          event.preventDefault();
+          setWidth(currentWidth + (event.key === "ArrowRight" ? 25 : -25));
+        });
+
+        presets.forEach(button => {
+          button.addEventListener("click", () => setWidth(Number(button.dataset.width)));
+        });
+
+        window.addEventListener("resize", () => setWidth(currentWidth), { passive: true });
+        setWidth(currentWidth);
+      }
+    </script>
+  </body>
+</html>
