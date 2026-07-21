@@ -29,6 +29,7 @@
   "scripts": {
     "dev": "vite --open demo/index.html",
     "build": "tsup src/index.ts --format esm,cjs --clean && tsc -p tsconfig.build.json",
+    "build:docs": "tsup src/index.ts --format esm --out-dir docs --minify",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
