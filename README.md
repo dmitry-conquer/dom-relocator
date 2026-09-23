@@ -161,7 +161,7 @@ pnpm test       # Run the test suite
 pnpm build      # Build ESM, CommonJS, and declarations
 ```
 
-The interactive demo includes a draggable viewport resizer and examples for different media queries and insertion positions.
+The interactive demo includes a draggable viewport resizer plus focused examples for responsive relocation, first/last placement, and numeric insertion.
 
 ## Browser support
 

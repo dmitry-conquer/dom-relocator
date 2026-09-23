@@ -3,19 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DOMRelocator Demo</title>
+    <meta name="color-scheme" content="light" />
+    <meta name="description" content="Interactive DOMRelocator examples." />
+    <title>DOMRelocator — responsive DOM relocation</title>
     <style>
       :root {
-        font-family:
-          Inter,
-          ui-sans-serif,
-          system-ui,
-          -apple-system,
-          BlinkMacSystemFont,
-          "Segoe UI",
-          sans-serif;
-        color: #172033;
-        background: #f6f7f9;
+        color: #20242c;
+        background: #f7f8fa;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         font-synthesis: none;
       }
 
@@ -25,668 +20,685 @@
 
       body {
         min-width: 320px;
+        min-height: 100vh;
         margin: 0;
+        background:
+          radial-gradient(circle at 12% 8%, rgb(100 89 215 / 7%), transparent 29rem),
+          #f7f8fa;
       }
 
-      .resizer-page {
-        display: none;
-        width: min(1320px, calc(100% - 32px));
+      button,
+      select,
+      input {
+        font: inherit;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .noise {
+        position: fixed;
+        z-index: 50;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.018;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitchTiles'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");
+      }
+
+      .page {
+        width: min(1120px, calc(100% - 40px));
         margin: 0 auto;
-        padding: 32px 0;
+        padding: 28px 0 54px;
       }
 
-      body.is-host .resizer-page {
-        display: block;
-      }
-
-      body.is-host .demo-page {
-        display: none;
-      }
-
-      .resizer-header {
+      .header {
         display: flex;
-        flex-wrap: wrap;
-        align-items: flex-end;
+        align-items: center;
         justify-content: space-between;
-        gap: 18px;
-        margin-bottom: 18px;
+        gap: 10px;
+        padding-bottom: 22px;
+        border-bottom: 1px solid #dfe3e8;
       }
 
-      .resizer-header h1 {
-        margin-bottom: 5px;
+      .library-name {
+        font: 720 15px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+        letter-spacing: -0.02em;
       }
 
-      .presets {
+      .header-details,
+      .package-meta {
         display: flex;
-        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .header-details {
+        gap: 8px;
+      }
+
+      .meta-item {
+        display: grid;
+        gap: 3px;
+        padding: 0 12px;
+        border-left: 1px solid #dfe3e8;
+      }
+
+      .meta-item:first-child {
+        border-left: 0;
+      }
+
+      .meta-label {
+        color: #8a919d;
+        font: 700 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .meta-value {
+        color: #4e5663;
+        font: 650 10px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+        white-space: nowrap;
+      }
+
+      .repository-link {
+        display: inline-flex;
+        min-height: 30px;
+        align-items: center;
         gap: 6px;
-      }
-
-      .preset {
-        min-height: 34px;
-        padding: 0 10px;
-        border: 1px solid #d0d5dd;
-        border-radius: 7px;
-        color: #475467;
+        padding: 0 9px;
+        border: 1px solid #d8dde4;
+        border-radius: 6px;
+        color: #4e5663;
         background: #fff;
-        cursor: pointer;
-        font:
-          600 11px/1 ui-monospace,
-          SFMono-Regular,
-          Menlo,
-          monospace;
+        font: 650 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
       }
 
-      .preset:hover,
-      .preset.is-active {
-        border-color: #2563eb;
-        color: #175cd3;
-        background: #eff4ff;
+      .repository-link:hover {
+        border-color: #9e97e7;
+        color: #5146c7;
       }
 
-      .resizer-track {
-        position: relative;
-        min-height: 960px;
-        padding: 14px 24px 14px 14px;
-        overflow-x: auto;
-        border: 1px solid #d8dee8;
+      .repository-link svg {
+        width: 15px;
+        height: 15px;
+        fill: currentColor;
+      }
+
+      .section {
+        padding-block: 78px;
+        border-bottom: 1px solid #dfe3e8;
+      }
+
+      .section-head {
+        display: grid;
+        grid-template-columns: minmax(150px, 0.45fr) 1.55fr;
+        gap: 34px;
+        margin-bottom: 34px;
+      }
+
+      .label {
+        color: #6b63c7;
+        font: 700 10px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .section-head h1,
+      .section-head h2 {
+        max-width: 760px;
+        margin: 0;
+        color: #252a34;
+        font-size: 48px;
+        font-weight: 560;
+        letter-spacing: -0.055em;
+        line-height: 1;
+      }
+
+      .demo {
+        overflow: hidden;
+        border: 1px solid #dfe3e8;
         border-radius: 12px;
-        background: linear-gradient(#e4e7ec 1px, transparent 1px), linear-gradient(90deg, #e4e7ec 1px, transparent 1px), #eef1f5;
-        background-size: 24px 24px;
-      }
-
-      .preview {
-        position: relative;
-        width: 1200px;
-        min-width: 0;
-        border: 1px solid #b8c1ce;
-        border-radius: 9px;
         background: #fff;
-        box-shadow: 0 12px 30px rgba(16, 24, 40, 0.12);
+        box-shadow: 0 8px 22px rgb(35 44 58 / 5%);
       }
 
-      .preview-bar {
+      .demo-toolbar {
         display: flex;
-        height: 38px;
+        min-height: 52px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 0 14px 0 18px;
+        border-bottom: 1px solid #e4e7ec;
+      }
+
+      .demo-toolbar-title {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: #525a67;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .demo-toolbar-title::before {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #6459d7;
+        content: "";
+      }
+
+      .demo-tools {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .frame-width {
+        min-width: 46px;
+        color: #7b8390;
+        font: 700 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+        text-align: right;
+      }
+
+      .segments {
+        display: inline-flex;
+        gap: 2px;
+        padding: 3px;
+        border-radius: 7px;
+        background: #eef0f3;
+      }
+
+      .segment {
+        min-height: 27px;
+        padding: 0 9px;
+        border: 0;
+        border-radius: 5px;
+        color: #7b8390;
+        background: transparent;
+        cursor: pointer;
+        font-size: 9px;
+        font-weight: 750;
+      }
+
+      .segment.is-active {
+        color: #3f4652;
+        background: #fff;
+        box-shadow: 0 1px 3px rgb(35 44 58 / 12%);
+      }
+
+      .frame-stage {
+        position: relative;
+        min-height: 470px;
+        padding: 20px 30px 20px 20px;
+        overflow-x: auto;
+        background:
+          linear-gradient(#5961700d 1px, transparent 1px),
+          linear-gradient(90deg, #5961700d 1px, transparent 1px),
+          #fafaff;
+        background-size: 42px 42px;
+      }
+
+      .frame-preview {
+        position: relative;
+        width: 820px;
+        min-width: 0;
+        margin: 0 auto;
+        border: 1px solid #d8dce3;
+        border-radius: 10px;
+        background: #fff;
+        box-shadow: 0 12px 30px rgb(35 44 58 / 9%);
+      }
+
+      .frame-bar {
+        display: flex;
+        height: 36px;
         align-items: center;
         justify-content: space-between;
         padding: 0 12px;
-        border-bottom: 1px solid #d8dee8;
-        border-radius: 9px 9px 0 0;
-        color: #667085;
-        background: #f9fafb;
-        font-size: 11px;
+        border-bottom: 1px solid #e6e8ec;
+        color: #adb2ba;
+        font-size: 9px;
       }
 
-      .preview-bar output {
-        color: #175cd3;
-        font:
-          700 12px/1 ui-monospace,
-          SFMono-Regular,
-          Menlo,
-          monospace;
+      .frame-bar code {
+        color: #7d8490;
+        font: 650 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
       }
 
-      .preview iframe {
+      .frame-preview iframe {
         display: block;
         width: 100%;
-        height: 900px;
+        height: 390px;
         border: 0;
-        border-radius: 0 0 9px 9px;
-        background: #f6f7f9;
+        border-radius: 0 0 10px 10px;
+        background: #fff;
+      }
+
+      .frame-preview.is-tall iframe {
+        height: 470px;
+      }
+
+      .frame-stage:has(.frame-preview.is-tall) {
+        min-height: 550px;
       }
 
       .resize-handle {
         position: absolute;
         top: 50%;
-        right: -11px;
-        display: grid;
-        width: 22px;
-        height: 64px;
+        right: -8px;
+        width: 16px;
+        height: 58px;
         padding: 0;
-        place-items: center;
         transform: translateY(-50%);
-        border: 1px solid #9db8f4;
-        border-radius: 7px;
-        color: #2563eb;
+        border: 0;
+        border-radius: 8px;
+        color: #969da8;
         background: #fff;
-        box-shadow: 0 3px 10px rgba(16, 24, 40, 0.14);
+        box-shadow: 0 1px 7px rgb(20 20 18 / 20%);
         cursor: ew-resize;
         touch-action: none;
       }
 
       .resize-handle::before {
-        color: currentColor;
         content: "⋮";
-        font-size: 18px;
-        line-height: 1;
+        font-size: 15px;
       }
 
-      .resize-handle:focus-visible {
-        outline: 3px solid rgba(37, 99, 235, 0.22);
-        outline-offset: 2px;
-      }
-
-      .resizer-hint {
-        margin: 10px 0 0;
-        color: #667085;
-        font-size: 12px;
-      }
-
-      .page {
-        width: min(1040px, calc(100% - 32px));
-        margin: 0 auto;
-        padding: 40px 0;
-      }
-
-      h1 {
-        margin: 0 0 8px;
-        font-size: 28px;
-        letter-spacing: -0.03em;
-      }
-
-      .description {
-        margin: 0;
-        color: #667085;
-        line-height: 1.5;
-      }
-
-      .project-meta {
+      footer {
         display: flex;
-        flex-wrap: wrap;
-        gap: 7px 14px;
-        margin: 9px 0 0;
-        color: #667085;
-        font-size: 12px;
-      }
-
-      .project-meta strong {
-        color: #344054;
-      }
-
-      .repository-placeholder {
-        color: #175cd3;
-      }
-
-      .toolbar {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
         justify-content: space-between;
-        gap: 16px;
-        margin: 22px 0 14px;
-        padding: 11px 13px;
-        border: 1px solid #d8dee8;
-        border-radius: 9px;
-        background: #fff;
-      }
-
-      .viewport {
-        color: #172033;
-        font:
-          700 13px/1 ui-monospace,
-          SFMono-Regular,
-          Menlo,
-          monospace;
-      }
-
-      .legend {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 7px;
-      }
-
-      .legend-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 5px 8px;
-        border-radius: 99px;
-        color: #667085;
-        background: #f2f4f7;
+        padding-block: 36px;
+        color: #7c8491;
         font-size: 11px;
       }
 
-      .legend-dot {
+      .embedded {
+        min-height: 100vh;
+        padding: 28px;
+        background: #fff;
+      }
+
+      .embedded[hidden],
+      .embedded-example[hidden] {
+        display: none;
+      }
+
+      .embedded-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 22px;
+      }
+
+      .embedded-title {
+        margin: 0;
+        color: #252a34;
+        font-size: 18px;
+        font-weight: 650;
+        letter-spacing: -0.035em;
+      }
+
+      .status {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 7px;
+        color: #858c97;
+        font: 700 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .status::before {
         width: 7px;
         height: 7px;
         border-radius: 50%;
-        background: #98a2b3;
+        background: #aeb4bd;
+        content: "";
       }
 
-      .legend-item.is-active {
-        color: #175cd3;
-        background: #eff4ff;
+      .status.is-moved {
+        color: #5146c7;
       }
 
-      .legend-item.is-active .legend-dot {
-        background: #2563eb;
+      .status.is-moved::before {
+        background: #6459d7;
+        box-shadow: 0 0 12px rgb(100 89 215 / 42%);
       }
 
-      .stage {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 96px minmax(0, 1fr);
-        align-items: stretch;
-        gap: 14px;
-      }
-
-      .container {
-        min-height: 390px;
-        padding: 18px;
-        border: 2px dashed #c9d1dd;
-        border-radius: 12px;
-        background: #fff;
-      }
-
-      .container.destination {
-        border-color: #9bb7f5;
-        background: #f8faff;
-      }
-
-      .container-heading {
+      .embedded-control {
         display: flex;
         align-items: center;
-        gap: 10px;
-        margin-bottom: 18px;
+        gap: 8px;
       }
 
-      .number {
-        display: inline-grid;
-        flex: 0 0 auto;
-        width: 29px;
-        height: 29px;
-        place-items: center;
-        border-radius: 50%;
-        color: #fff;
-        background: #344054;
-        font-size: 12px;
-        font-weight: 750;
+      .embedded-control label {
+        color: #7a828e;
+        font-size: 9px;
+        font-weight: 700;
       }
 
-      .destination .number {
-        background: #2563eb;
+      .embedded-control select,
+      .embedded-control input {
+        min-height: 30px;
+        border: 1px solid #d9dde4;
+        border-radius: 6px;
+        outline: 0;
+        background: #fff;
+        color: #4e5663;
+        font-size: 10px;
       }
 
-      .container-heading strong {
-        display: block;
-        font-size: 14px;
+      .embedded-control select {
+        min-width: 78px;
+        padding: 0 8px;
       }
 
-      .container-heading small {
-        display: block;
-        margin-top: 2px;
-        color: #667085;
-        font-size: 11px;
+      .embedded-control input {
+        width: 50px;
+        padding: 0 6px;
+        text-align: center;
+      }
+
+      .scene {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        min-height: 260px;
+        overflow: hidden;
+        border: 1px solid #e1e4e9;
+        border-radius: 10px;
+        background:
+          linear-gradient(#5961700d 1px, transparent 1px),
+          linear-gradient(90deg, #5961700d 1px, transparent 1px),
+          #fafaff;
+        background-size: 36px 36px;
+      }
+
+      .zone {
+        display: grid;
+        min-width: 0;
+        align-content: center;
+        padding: 20px;
+      }
+
+      .zone + .zone {
+        border-left: 1px solid #e3e6eb;
+      }
+
+      .zone-label {
+        margin-bottom: 12px;
+        color: #8a919d;
+        font: 700 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
       }
 
       .slot {
         display: grid;
-        align-content: start;
-        min-height: 304px;
-        gap: 10px;
+        min-height: 150px;
+        align-content: center;
+        gap: 7px;
         padding: 10px;
-        border: 1px solid #e4e7ec;
+        border: 1px dashed #cbd0d8;
         border-radius: 9px;
+        background: rgb(255 255 255 / 76%);
       }
 
-      .slot:empty {
-        place-items: center;
+      .slot:not(:has(.relocatable))::after {
+        place-self: center;
+        color: #a3a9b2;
+        content: "Empty";
+        font: 650 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
       }
 
-      .slot:empty::after {
-        color: #98a2b3;
-        font-size: 12px;
-        text-align: center;
-      }
-
-      .source-slot:empty::after {
-        content: "All elements moved";
-      }
-
-      .target-slot:empty::after {
-        content: "Resize below 1100px";
-      }
-
-      .movable {
-        display: grid;
-        grid-template-columns: auto minmax(0, 1fr);
+      .relocatable {
+        display: flex;
+        min-width: 0;
+        min-height: 72px;
         align-items: center;
-        gap: 10px;
-        min-height: 88px;
-        padding: 11px;
-        border: 1px solid var(--item-border);
+        justify-content: space-between;
+        gap: 12px;
+        padding: 13px 14px;
         border-radius: 8px;
-        background: var(--item-bg);
-        box-shadow: 0 3px 10px rgba(52, 64, 84, 0.05);
+        color: #fff;
+        background: linear-gradient(145deg, #776ce1, #5146c7);
+        box-shadow: 0 14px 34px rgb(100 89 215 / 22%);
       }
 
-      .movable-a {
-        --item-border: #b7a4eb;
-        --item-bg: #f9f5ff;
-        --item-color: #6941c6;
+      .relocatable-copy {
+        min-width: 0;
       }
 
-      .movable-b {
-        --item-border: #88c9a5;
-        --item-bg: #f0fdf4;
-        --item-color: #168153;
+      .node-label {
+        display: block;
+        margin-bottom: 5px;
+        color: #d9d6ff;
+        font: 750 7px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        white-space: nowrap;
       }
 
-      .movable-c {
-        --item-border: #f0b89a;
-        --item-bg: #fff7ed;
-        --item-color: #c2410c;
-      }
-
-      .movable .number {
-        width: 28px;
-        height: 28px;
-        background: var(--item-color);
-        font-size: 10px;
-      }
-
-      .movable strong {
+      .relocatable strong {
         display: block;
         overflow: hidden;
-        font-size: 13px;
+        font-size: 11px;
         text-overflow: ellipsis;
         white-space: nowrap;
       }
 
-      .movable-copy {
-        min-width: 0;
-      }
-
-      .movable small {
-        display: block;
-        margin-top: 3px;
-        color: #667085;
-        font-size: 11px;
-      }
-
-      .breakpoint {
-        display: inline-flex;
-        margin-top: 8px;
-        padding: 5px 7px;
-        border: 1px solid var(--item-border);
-        border-radius: 6px;
-        color: var(--item-color);
+      .counter {
+        flex: 0 0 auto;
+        width: 34px;
+        height: 34px;
+        border: 0;
+        border-radius: 50%;
+        color: #5146c7;
         background: #fff;
-        font:
-          700 10px/1 ui-monospace,
-          SFMono-Regular,
-          Menlo,
-          monospace;
+        cursor: pointer;
+        font-size: 10px;
+        font-weight: 800;
       }
 
-      .arrow {
+      .list {
         display: grid;
-        place-items: center;
-        color: #667085;
-        text-align: center;
+        gap: 6px;
       }
 
-      .arrow strong {
-        display: block;
-        color: #2563eb;
-        font-size: 32px;
-        line-height: 1;
-      }
-
-      .arrow span {
-        display: block;
-        margin-top: 9px;
-        font-size: 11px;
-        line-height: 1.45;
-      }
-
-      .status-list {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
+      .list-row {
+        display: flex;
+        min-height: 38px;
+        align-items: center;
         gap: 8px;
-        margin-top: 14px;
-      }
-
-      .status {
-        padding: 9px 10px;
-        border: 1px solid #d8dee8;
+        padding: 0 10px;
         border-radius: 7px;
-        color: #667085;
+        color: #68707d;
         background: #fff;
-        font-size: 11px;
-        text-align: center;
+        box-shadow: 0 2px 7px rgb(35 44 58 / 5%);
+        font-size: 9px;
+        font-weight: 650;
       }
 
-      .status strong {
-        color: #344054;
+      .list-row::before {
+        display: grid;
+        width: 19px;
+        height: 19px;
+        place-items: center;
+        border-radius: 5px;
+        color: #8b839d;
+        background: #f0eff7;
+        content: attr(data-item);
+        font: 700 7px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
       }
 
-      .status.is-moved {
-        border-color: #b2ccff;
-        color: #175cd3;
-        background: #eff4ff;
+      .relocatable.list-row {
+        color: #fff;
+        background: linear-gradient(145deg, #776ce1, #5146c7);
       }
 
-      .status.is-moved strong {
-        color: #175cd3;
-      }
-
-      .code {
-        margin: 18px 0 0;
-        padding: 13px 15px;
-        overflow-x: auto;
-        border: 1px solid #d8dee8;
-        border-radius: 8px;
-        color: #344054;
+      .relocatable.list-row::before {
+        color: #5146c7;
         background: #fff;
-        font:
-          11px/1.6 ui-monospace,
-          SFMono-Regular,
-          Menlo,
-          monospace;
+        content: "DOM";
+      }
+
+      @media (max-width: 700px) {
+        .page {
+          width: min(100% - 28px, 1120px);
+          padding-top: 20px;
+        }
+
+        .header {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .header-details {
+          align-items: flex-start;
+          flex-wrap: wrap;
+        }
+
+        .meta-item:first-child {
+          padding-left: 0;
+        }
+
+        .section {
+          padding-block: 62px;
+        }
+
+        .section-head {
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+
+        .section-head h1,
+        .section-head h2 {
+          font-size: 36px;
+        }
+
+        .demo-toolbar {
+          align-items: flex-start;
+          flex-direction: column;
+          padding-block: 12px;
+        }
+
+        .demo-tools {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        .frame-stage {
+          padding-left: 12px;
+        }
       }
     </style>
   </head>
   <body>
-    <section class="resizer-page" aria-label="Resizable demo preview">
-      <header class="resizer-header">
-        <div>
-          <h1>DOMRelocator demo</h1>
-          <p class="description">Drag the blue handle or choose a viewport preset.</p>
-          <p class="project-meta">
-            <span>Created by <strong>Dmytro Frolov</strong></span>
-            <a href="https://github.com/dmitry-conquer/dom-relocator" class="repository-placeholder" aria-disabled="true">GitHub repository</a>
-          </p>
-        </div>
-        <div class="presets" aria-label="Viewport presets">
-          <button class="preset" type="button" data-width="1200">Desktop · 1200</button>
-          <button class="preset" type="button" data-width="1000">Move 2A · 1000</button>
-          <button class="preset" type="button" data-width="800">Move 2B · 800</button>
-          <button class="preset" type="button" data-width="650">Move 2C · 650</button>
+    <div class="noise"></div>
+
+    <div class="page" data-host-page>
+      <header class="header">
+        <span class="library-name">dom-relocator</span>
+        <div class="header-details">
+          <div class="package-meta" aria-label="Package metadata">
+            <div class="meta-item"><span class="meta-label">ESM</span><span class="meta-value">6.8 kB</span></div>
+            <div class="meta-item"><span class="meta-label">Gzip</span><span class="meta-value">2.1 kB</span></div>
+            <div class="meta-item"><span class="meta-label">Dependencies</span><span class="meta-value">None</span></div>
+          </div>
+          <a class="repository-link" href="https://github.com/dmitry-conquer/dom-relocator" target="_blank" rel="noreferrer">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.64 0 8.13c0 3.59 2.29 6.63 5.47 7.7.4.08.55-.18.55-.39 0-.19-.01-.83-.01-1.51-2.01.38-2.53-.5-2.69-.96-.09-.23-.48-.96-.82-1.15-.28-.15-.68-.54-.01-.55.63-.01 1.08.59 1.23.83.72 1.23 1.87.88 2.33.67.07-.53.28-.88.51-1.08-1.78-.21-3.64-.91-3.64-4.02 0-.89.31-1.62.82-2.19-.08-.2-.36-1.04.08-2.16 0 0 .67-.22 2.2.84A7.43 7.43 0 0 1 8 3.95c.68 0 1.36.09 2 .27 1.53-1.06 2.2-.84 2.2-.84.44 1.12.16 1.96.08 2.16.51.57.82 1.3.82 2.19 0 3.12-1.87 3.81-3.65 4.02.29.25.54.74.54 1.5 0 1.08-.01 1.95-.01 2.22 0 .21.15.47.55.39A8.13 8.13 0 0 0 16 8.13C16 3.64 12.42 0 8 0Z" /></svg>
+            Docs
+          </a>
         </div>
       </header>
 
-      <div class="resizer-track" id="resizer-track">
-        <div class="preview" id="preview">
-          <div class="preview-bar"><span>Live preview</span><output id="preview-width">1200px</output></div>
-          <iframe id="preview-frame" title="DOMRelocator live demo" src="./index.html?embedded=1"></iframe>
-          <button
-            class="resize-handle"
-            id="resize-handle"
-            type="button"
-            role="slider"
-            aria-label="Resize preview"
-            aria-valuemin="620"
-            aria-valuemax="1240"
-            aria-valuenow="1200"
-          ></button>
+      <main>
+        <section class="section">
+          <div class="section-head"><span class="label">01 / Basic relocation</span><h1>Move the original node at a breakpoint.</h1></div>
+          <article class="demo" data-frame-demo data-wide="820" data-compact="560">
+            <header class="demo-toolbar">
+              <span class="demo-toolbar-title">Move and restore</span>
+              <div class="demo-tools"><output class="frame-width" data-frame-width>820px</output><div class="segments"><button class="segment" type="button" data-frame-size="wide">Wide</button><button class="segment" type="button" data-frame-size="compact">Compact</button></div></div>
+            </header>
+            <div class="frame-stage" data-frame-stage>
+              <div class="frame-preview" data-frame-preview>
+                <div class="frame-bar"><span>•••</span><code>max-width: 640px</code></div>
+                <iframe title="Basic relocation example" src="./index.html?example=basic"></iframe>
+                <button class="resize-handle" type="button" role="slider" aria-label="Resize basic example"></button>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="section">
+          <div class="section-head"><span class="label">02 / First or last</span><h2>Choose the edge, then cross the breakpoint.</h2></div>
+          <article class="demo" data-frame-demo data-wide="820" data-compact="560">
+            <header class="demo-toolbar">
+              <span class="demo-toolbar-title">Edge placement</span>
+              <div class="demo-tools"><output class="frame-width" data-frame-width>820px</output><div class="segments"><button class="segment" type="button" data-frame-size="wide">Wide</button><button class="segment" type="button" data-frame-size="compact">Compact</button></div></div>
+            </header>
+            <div class="frame-stage" data-frame-stage>
+              <div class="frame-preview is-tall" data-frame-preview>
+                <div class="frame-bar"><span>•••</span><code>first | last</code></div>
+                <iframe title="First or last position example" src="./index.html?example=edge"></iframe>
+                <button class="resize-handle" type="button" role="slider" aria-label="Resize first or last example"></button>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="section">
+          <div class="section-head"><span class="label">03 / Numeric position</span><h2>Insert at an exact zero-based index.</h2></div>
+          <article class="demo" data-frame-demo data-wide="820" data-compact="560">
+            <header class="demo-toolbar">
+              <span class="demo-toolbar-title">Indexed placement</span>
+              <div class="demo-tools"><output class="frame-width" data-frame-width>820px</output><div class="segments"><button class="segment" type="button" data-frame-size="wide">Wide</button><button class="segment" type="button" data-frame-size="compact">Compact</button></div></div>
+            </header>
+            <div class="frame-stage" data-frame-stage>
+              <div class="frame-preview is-tall" data-frame-preview>
+                <div class="frame-bar"><span>•••</span><code>index: 0–3</code></div>
+                <iframe title="Numeric position example" src="./index.html?example=index"></iframe>
+                <button class="resize-handle" type="button" role="slider" aria-label="Resize numeric position example"></button>
+              </div>
+            </div>
+          </article>
+        </section>
+      </main>
+
+      <footer><span>DOMRelocator</span><span>Zero runtime dependencies</span></footer>
+    </div>
+
+    <main class="embedded" data-embedded-page hidden>
+      <section class="embedded-example" data-example="basic" hidden>
+        <header class="embedded-head"><h1 class="embedded-title">Account actions</h1><span class="status" data-status>Original position</span></header>
+        <div class="scene">
+          <div class="zone"><span class="zone-label">Desktop actions</span><div class="slot" id="basic-source"><div class="relocatable" id="basic-item" data-relocate-to="#basic-target" data-relocate-query="(max-width: 640px)" data-relocate-position="last"><div class="relocatable-copy"><span class="node-label">Same DOM node</span><strong>Account actions</strong></div><button class="counter" type="button" data-counter aria-label="Increase preserved counter">0</button></div></div></div>
+          <div class="zone"><span class="zone-label">Mobile actions</span><div class="slot" id="basic-target"></div></div>
         </div>
-      </div>
-      <p class="resizer-hint">Tip: use the left and right arrow keys while the resize handle is focused.</p>
-    </section>
-
-    <main class="page demo-page">
-      <h1>DOMRelocator demo</h1>
-      <p class="description">Resize the browser. Elements move from container <strong>1</strong> to container <strong>3</strong> using different insertion positions.</p>
-
-      <div class="toolbar">
-        <output class="viewport" id="viewport-width">Viewport: 0px</output>
-        <div class="legend" aria-label="Breakpoints">
-          <span class="legend-item" data-legend="item-a"><i class="legend-dot"></i>2A · first · 1100px</span>
-          <span class="legend-item" data-legend="item-b"><i class="legend-dot"></i>2B · last · 900px</span>
-          <span class="legend-item" data-legend="item-c"><i class="legend-dot"></i>2C · index 1 · 700px</span>
-        </div>
-      </div>
-
-      <section class="stage" aria-label="Relocation diagram">
-        <article class="container">
-          <header class="container-heading">
-            <span class="number">1</span>
-            <div><strong>Source</strong><small>#desktop-items</small></div>
-          </header>
-          <div class="slot source-slot" id="desktop-items">
-            <article class="movable movable-a" id="item-a" data-relocate-to="#responsive-items" data-relocate-query="(max-width: 1100px)" data-relocate-position="first">
-              <span class="number">2A</span>
-              <div class="movable-copy"><strong>Navigation</strong><small>Insert at the beginning</small><span class="breakpoint">first · ≤1100</span></div>
-            </article>
-
-            <article class="movable movable-b" id="item-b" data-relocate-to="#responsive-items" data-relocate-query="(max-width: 900px)" data-relocate-position="last">
-              <span class="number">2B</span>
-              <div class="movable-copy"><strong>Search</strong><small>Append at the end</small><span class="breakpoint">last · ≤900</span></div>
-            </article>
-
-            <article class="movable movable-c" id="item-c" data-relocate-to="#responsive-items" data-relocate-query="(max-width: 700px)" data-relocate-position="1">
-              <span class="number">2C</span>
-              <div class="movable-copy"><strong>Actions</strong><small>Insert at index 1</small><span class="breakpoint">index 1 · ≤700</span></div>
-            </article>
-          </div>
-        </article>
-
-        <div class="arrow" aria-hidden="true">
-          <div>
-            <strong>→</strong><span>moves<br />at each<br />breakpoint</span>
-          </div>
-        </div>
-
-        <article class="container destination">
-          <header class="container-heading">
-            <span class="number">3</span>
-            <div><strong>Destination</strong><small>#responsive-items</small></div>
-          </header>
-          <div class="slot target-slot" id="responsive-items"></div>
-        </article>
       </section>
 
-      <div class="status-list" aria-live="polite">
-        <div class="status" id="status-item-a"><strong>2A</strong> is inside 1</div>
-        <div class="status" id="status-item-b"><strong>2B</strong> is inside 1</div>
-        <div class="status" id="status-item-c"><strong>2C</strong> is inside 1</div>
-      </div>
+      <section class="embedded-example" data-example="edge" hidden>
+        <header class="embedded-head"><h1 class="embedded-title">Navigation position</h1><div class="embedded-control"><label for="edge-select">Insert</label><select id="edge-select" data-edge-select><option value="first">First</option><option value="last">Last</option></select><span class="status" data-status>Original position</span></div></header>
+        <div class="scene">
+          <div class="zone"><span class="zone-label">Source</span><div class="slot" id="edge-source"><div class="relocatable list-row" id="edge-item" data-relocate-to="#edge-target" data-relocate-query="(max-width: 640px)" data-relocate-position="first"><span><span class="node-label">Same DOM node</span>Navigation</span></div></div></div>
+          <div class="zone"><span class="zone-label">Destination list</span><div class="slot list" id="edge-target"><div class="list-row" data-item="A">Search</div><div class="list-row" data-item="B">Profile</div><div class="list-row" data-item="C">Settings</div></div></div>
+        </div>
+      </section>
 
-      <pre class="code">
-&lt;!-- 2A --&gt;
-data-relocate-to="#responsive-items"
-data-relocate-query="(max-width: 1100px)"
-data-relocate-position="first"
-
-&lt;!-- 2B --&gt;
-data-relocate-to="#responsive-items"
-data-relocate-query="(max-width: 900px)"
-data-relocate-position="last"
-
-&lt;!-- 2C --&gt;
-data-relocate-to="#responsive-items"
-data-relocate-query="(max-width: 700px)"
-data-relocate-position="1"</pre
-      >
+      <section class="embedded-example" data-example="index" hidden>
+        <header class="embedded-head"><h1 class="embedded-title">Quick actions position</h1><div class="embedded-control"><label for="index-input">Index</label><input id="index-input" data-index-input type="number" min="0" max="3" value="1" /><span class="status" data-status>Original position</span></div></header>
+        <div class="scene">
+          <div class="zone"><span class="zone-label">Source</span><div class="slot" id="index-source"><div class="relocatable list-row" id="index-item" data-relocate-to="#index-target" data-relocate-query="(max-width: 640px)" data-relocate-position="1"><span><span class="node-label">Same DOM node</span>Quick actions</span></div></div></div>
+          <div class="zone"><span class="zone-label">Destination list</span><div class="slot list" id="index-target"><div class="list-row" data-item="0">Home</div><div class="list-row" data-item="1">Projects</div><div class="list-row" data-item="2">Activity</div></div></div>
+        </div>
+      </section>
     </main>
 
-    <script type="module">
-      import DOMRelocator from "./index.js";
-
-      const isEmbedded = new URLSearchParams(window.location.search).has("embedded");
-
-      if (isEmbedded) {
-        document.body.classList.add("is-embedded");
-
-        const items = [
-          { id: "item-a", query: "(max-width: 1100px)", position: "first" },
-          { id: "item-b", query: "(max-width: 900px)", position: "last" },
-          { id: "item-c", query: "(max-width: 700px)", position: "index 1" },
-        ];
-        const width = document.querySelector("#viewport-width");
-
-        const updateItem = (id, moved) => {
-          const label = id.slice(-1).toUpperCase();
-          const position = items.find(item => item.id === id)?.position;
-          const status = document.querySelector(`#status-${id}`);
-          const legend = document.querySelector(`[data-legend="${id}"]`);
-          status.innerHTML = moved ? `<strong>2${label}</strong> → ${position} in 3` : `<strong>2${label}</strong> is inside 1`;
-          status.classList.toggle("is-moved", moved);
-          legend.classList.toggle("is-active", moved);
-        };
-
-        const updateViewport = () => {
-          width.textContent = `Viewport: ${window.innerWidth}px`;
-        };
-
-        window.addEventListener("resize", updateViewport, { passive: true });
-        updateViewport();
-
-        new DOMRelocator({
-          onChange: change => updateItem(change.element.id, change.action === "move"),
-        });
-
-        for (const item of items) updateItem(item.id, window.matchMedia(item.query).matches);
-      } else {
-        document.body.classList.add("is-host");
-
-        const track = document.querySelector("#resizer-track");
-        const preview = document.querySelector("#preview");
-        const output = document.querySelector("#preview-width");
-        const handle = document.querySelector("#resize-handle");
-        const presets = [...document.querySelectorAll("[data-width]")];
-        let currentWidth = 1200;
-        let dragStartX = 0;
-        let dragStartWidth = 0;
-
-        const availableWidth = () => Math.min(1240, track.clientWidth - 38);
-
-        const setWidth = requestedWidth => {
-          const maximum = availableWidth();
-          const minimum = Math.min(620, maximum);
-          currentWidth = Math.round(Math.max(minimum, Math.min(requestedWidth, maximum)));
-          preview.style.width = `${currentWidth}px`;
-          output.textContent = `${currentWidth}px`;
-          handle.setAttribute("aria-valuemax", String(maximum));
-          handle.setAttribute("aria-valuenow", String(currentWidth));
-          presets.forEach(button => button.classList.toggle("is-active", Number(button.dataset.width) === currentWidth));
-        };
-
-        handle.addEventListener("pointerdown", event => {
-          dragStartX = event.clientX;
-          dragStartWidth = currentWidth;
-          handle.setPointerCapture(event.pointerId);
-        });
-
-        handle.addEventListener("pointermove", event => {
-          if (!handle.hasPointerCapture(event.pointerId)) return;
-          setWidth(dragStartWidth + event.clientX - dragStartX);
-        });
-
-        handle.addEventListener("keydown", event => {
-          if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-          event.preventDefault();
-          setWidth(currentWidth + (event.key === "ArrowRight" ? 25 : -25));
-        });
-
-        presets.forEach(button => {
-          button.addEventListener("click", () => setWidth(Number(button.dataset.width)));
-        });
-
-        window.addEventListener("resize", () => setWidth(currentWidth), { passive: true });
-        setWidth(currentWidth);
-      }
-    </script>
+    <script type="module" src="./main.ts"></script>
   </body>
 </html>

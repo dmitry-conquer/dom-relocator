@@ -10,5 +10,5 @@
     "skipLibCheck": true,
     "useDefineForClassFields": true
   },
-  "include": ["src", "test", "vitest.config.ts"]
+  "include": ["src", "test", "docs", "vitest.config.ts", "vite.docs.config.ts"]
 }

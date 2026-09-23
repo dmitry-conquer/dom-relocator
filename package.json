@@ -39,9 +39,9 @@
     }
   },
   "scripts": {
-    "dev": "vite --open demo/index.html",
+    "dev": "vite --config vite.docs.config.ts --open",
     "build": "tsup src/index.ts --format esm,cjs --clean && tsc -p tsconfig.build.json",
-    "build:docs": "tsup src/index.ts --format esm --out-dir docs --minify",
+    "build:docs": "vite build --config vite.docs.config.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
